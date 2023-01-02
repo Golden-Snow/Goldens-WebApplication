@@ -1,0 +1,79 @@
+﻿@page "/"
+
+
+<PageTitle>Myfirstwebsite</PageTitle>
+
+<h3>Welcome to my website!</h3>
+
+@if(tf.Get() is not null)
+{
+    
+<div class="input-group w-50 mb-3">
+        <input type="text" @bind="descrption" class="form-control" placeholder="Enter a Phrase that Golden would say" />
+        <button class="btn btn-outline-dark" @onclick="Add" >Add</button>
+</div>
+
+    @if(error.Length > 0)
+    {
+        <div class="alert alert-danger alert-dismissible w-50 mb-3">
+            <strong>Error!</strong> @error
+            <button type="button" class="btn-close" @onclick="HideError"></button>
+        </div>
+    }
+
+<ul class="list-group w-50 mb-3">
+        @foreach (var todo in tf.Get())
+    {
+        <li class="list-group-item d-flex align-items-center justify-content-between">
+            <div>
+                <input id="@todo.Id" type="checkbox" @onchange="@(e => Update(e.Value.Tobool(),todo))" class="form-check-input" checked ="@todo.Completed"/>
+                <label for="@todo.Id" class="form-check-label @(todo.Completed ? "completed" : "")" >@todo.Description</label>
+            </div>
+            <input type="button" value="Delete" class="btn btn-sm btn-outline-danger" 
+            @onclick="@(e => Delete(todo))" />
+
+        </li>
+    }
+
+</ul>
+}
+
+@code
+{
+    string descrption = string.Empty;
+    string error = string.Empty;
+    TodoFactory tf = new();
+
+    void HideError() => error = string.Empty;
+
+
+    void Update(bool completed, Todo todo)
+    {
+        HideError();
+        if (!tf.Update(completed, todo))
+            error = "couldn't update the to-do";
+    }
+
+    void Delete(Todo todo)
+    {
+        HideError();
+        tf.Delete(todo);
+    }
+
+    void Add()
+    {
+        try
+        {
+            HideError();
+            tf.Add(descrption);
+            descrption = string.Empty;
+        }
+        catch (ArgumentException ex)
+        {
+            error = ex.Message;
+        }
+        catch{ error = "Couldn't add the to-do."; }
+
+
+    }
+}
